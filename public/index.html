@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Notes App</title>
+</head>
+
+<body>
+    <h1>My Notes</h1>
+    <ul id="notesList"></ul>
+    <input type="text" id="noteInput" />
+    <button onclick="addNote()">Add Note</button>
+    <script>
+        function addNote() {
+            var noteInput = document.getElementById("noteInput");
+            var noteText = noteInput.value;
+            noteInput.value = "";
+
+            fetch('/notes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ note: noteText })
+            }).then(function () {
+                loadNotes();
+            });
+        }
+
+        function deleteNote(note) {
+            fetch('/notes/' + note.id, {
+                method: 'DELETE'
+            }).then(function () {
+                loadNotes();
+            });
+        }
+
+        function loadNotes() {
+            fetch('/notes')
+                .then(function (response) {
+                    return response.json();
+                })
+                .then(function (data) {
+                    var notesList = document.getElementById("notesList");
+                    notesList.innerHTML = "";
+
+                    data.forEach(function (note) {
+                        var listItem = document.createElement("li");
+                        listItem.innerHTML = note.text;
+
+                        var deleteButton = document.createElement("button");
+                        deleteButton.innerText = "Delete";
+                        deleteButton.onclick = function () {
+                            deleteNote(note);
+                        };
+
+                        listItem.appendChild(deleteButton);
+                        notesList.appendChild(listItem);
+                    });
+                });
+        }
+
+        loadNotes();
+    </script>
+</body>
+
+</html>
